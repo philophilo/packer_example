@@ -1,0 +1,30 @@
+{
+	"variables":{
+		"access_key": "{{env `aws_access_key`}}",
+		"secret_key": "{{env `aws_secret_key`}}",
+		"region": "{{env `aws_region`}}"
+	},
+	
+	"builders": [{
+        "type": "amazon-ebs",
+        "region": "{{user `region`}}",
+        "access_key": "{{user `access_key`}}",
+        "secret_key": "{{user `secret_key`}}",
+        "source_ami": "ami-916f59f4",
+        "instance_type": "t2.micro",
+        "ssh_username": "ubuntu",
+        "ami_name": "MiddleTeir-{{isotime | clean_ami_name}}",
+        "ami_description": "Attempt 1 Ubuntu 14.04 instance",
+        "tags": {
+            "role": "MiddleTier"
+        },
+        "run_tags": {
+            "role": "buildSystem"
+        }
+    }],
+
+	"provisioners":[{
+	    "type": "shell",
+	    "script": "provision.sh"
+	}]
+}
