@@ -32,3 +32,53 @@
     # find a way to copy files
     - name: copy apt_pkg.so
       copy: remote_src=True src=/usr/lib/python3/dist-packages/apt_pkg.cpython-35m-x86_64-linux-gnu.so dest=/usr/lib/python3/dist-packages/apt_pkg.so
+
+    - name: Set python3.5 with lower priority
+      alternatives:
+        name: python3
+        link: /usr/bin/python3
+        path: /usr/bin/python3.5
+        priority: 1
+
+    - name: Set python3.6 with higher priority
+      alternatives:
+        name: python3
+        link: /usr/bin/python3
+        path: /usr/bin/python3.6
+        priority: 10
+
+    - name: Install servers
+      apt:
+        name: "{{ item }}"
+      with_items:
+        - nginx
+        - gunicorn
+
+    - name: install python dependencies
+      apt: 
+        name: "{{ item }}"
+        state: present
+      with_items: 
+        - build-essential
+        - autoconf
+        - libtool
+        - pkg-config
+        - python-opengl
+        - python-imaging
+        - python-pyrex
+        - python-pyside.qtopengl
+        - idle-python2.7
+        - qt4-dev-tools
+        - qt4-designer
+        - libqtgui4
+        - libqtcore4
+        - libqt4-xml
+        - libqt4-test
+        - libqt4-script
+        - libqt4-network
+        - libqt4-dbus
+        - python-qt4
+        - python-qt4-gl
+        - libgle3
+        - python-dev
+        - libssl-dev
