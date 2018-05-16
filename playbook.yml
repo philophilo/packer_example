@@ -2,6 +2,10 @@
   connection: local
   become: yes
 
+  vars:
+    dir: /home/ubuntu/
+    app_dir: /home/ubuntu/yummy_api
+
   tasks:
     - name: Update source list
       environment:
@@ -82,3 +86,20 @@
         - libgle3
         - python-dev
         - libssl-dev
+
+    - name: install greenlet and gevent
+      shell: |
+        easy_install greenlet
+        easy_install gevent
+
+    - name: Install virtual environment
+      shell: |
+        cd ..
+        sudo -H pip3 install virtualenv
+        virtualenv -p python3 venv
+        . venv/bin/activate
+
+    - name: Git clone repo
+      git:
+        repo: https://github.com/philophilo/yummy_api.git
+        dest: "{{ app_dir }}"
