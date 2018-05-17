@@ -97,7 +97,6 @@
         cd ..
         sudo -H pip3 install virtualenv
         virtualenv -p python3 venv
-        . venv/bin/activate
 
     - name: Git clone repo
       git:
@@ -106,6 +105,7 @@
 
     - name: install pip requirements
       shell: |
+        . venv/bin/activate
         cd yummy_api
         pip install -r requirements.txt
 
