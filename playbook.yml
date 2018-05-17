@@ -132,6 +132,7 @@
     - name: Database setup
       shell: |
         export DATABASE_URL='postgresql://philophilo:12345678@databasepsql.c4ecouwmxh9c.us-east-2.rds.amazonaws.com:5432/yummy'
+        cd /home/ubuntu/yummy_api
         python manage.py db init
         python manage.py db migrate
         python manage.py db upgrade
