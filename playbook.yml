@@ -146,6 +146,12 @@
         sudo pip3 install cffi
         sudo apt-get install -y python-certbot-nginx
         sudo certbot --nginx
+      responses:
+        email: namaname@gmail.com
+        agree: y
+        server_name: 1
+        number: 2
+
 
     - name: start Nginx
       shell: |
