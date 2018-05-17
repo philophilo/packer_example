@@ -145,7 +145,7 @@
         sudo apt-get update
         sudo pip3 install cffi
         sudo apt-get install -y python-certbot-nginx
-        sudo certbot --nginx -d api3.philophilo.xyz --agree-tos -m namename.gmail.com --redirect
+        #        sudo certbot --nginx -d api3.p#hilophilo.xyz --agree-tos -m namename.gmail.com --redirect
   #      expect:
   #        responses:
   #          Enter email address \(used for urgent renewal and security notices\) \(Enter 'c' to cancel\):: namaname@gmail.com
