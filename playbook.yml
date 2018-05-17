@@ -101,10 +101,11 @@
     - name: Git clone repo
       git:
         repo: https://github.com/philophilo/yummy_api.git
-        dest: "{{ app_dir }}/yummy_api"
+        dest: "{{ app_dir }}"
 
     - name: install pip requirements
       shell: |
+        pwd
         . /home/ubuntu/venv/bin/activate
         cd /home/ubuntu/yummy_api
         pip install -r requirements.txt
