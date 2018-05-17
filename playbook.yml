@@ -108,7 +108,7 @@
         pwd
         . /home/ubuntu/venv/bin/activate
         cd /home/ubuntu/yummy_api
-        pip install -r requirements.txt
+        pip3 install -r requirements.txt
 
     - name: Nginx setup
       shell: |
