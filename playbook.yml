@@ -1,69 +1,36 @@
-- hosts: localhost
-  connection: local
+- hosts: all
   become: yes
+  become_method: sudo
+  remote_user: ubuntu
+  # gather_facts: False
 
   vars:
     dir: /home/ubuntu/
     app_dir: /home/ubuntu/yummy_api
+    ansible_python_interpreter: "/usr/bin/python3"
 
   tasks:
-    - name: Update source list
-      environment:
-        LANG: "en_US.UTF-8"
-        LC_ALL: "en_US.UTF-8"
-        LC_CTYPE: "en_US.UTF-8"
-      apt: name={{item}} update_cache=yes state=present
-      with_items:
-        - python-apt
-
-    - name: add python3.6 external source
-      apt_repository:
-        repo: ppa:deadsnakes/ppa
-        state: present
-        update_cache: yes
+#    - name: add python3.6 external source
+#      apt_repository:
+#        repo: ppa:deadsnakes/ppa
+#        state: present
     
-    - name: install python3.6
+#    - name: install python3.6
+#      apt:
+#        name: python3.6
+#        update_cache: yes
+
+    - name: install python essentials
       apt: 
         update_cache: yes
         name: "{{ item }}"
         state: present
       with_items:
-        - python3.6
-        - python3-pip
-        - python3.6-dev
-        - python3-gdbm
-
-    # find a way to copy files
-    - name: copy apt_pkg.so
-      copy: remote_src=True src=/usr/lib/python3/dist-packages/apt_pkg.cpython-35m-x86_64-linux-gnu.so dest=/usr/lib/python3/dist-packages/apt_pkg.so
-
-    - name: Set python3.5 with lower priority
-      alternatives:
-        name: python3
-        link: /usr/bin/python3
-        path: /usr/bin/python3.5
-        priority: 1
-
-    - name: Set python3.6 with higher priority
-      alternatives:
-        name: python3
-        link: /usr/bin/python3
-        path: /usr/bin/python3.6
-        priority: 10
-
-    - name: Install servers
-      apt:
-        name: "{{ item }}"
-      with_items:
-        - nginx
-        - gunicorn
-
-    - name: install python dependencies
-      apt: 
-        name: "{{ item }}"
-        state: present
-      with_items: 
         - build-essential
+        - python3-pip
+        - python3-dev
+        - nginx
+        - python3-gdbm
         - autoconf
         - libtool
         - pkg-config
@@ -87,15 +54,9 @@
         - python-dev
         - libssl-dev
 
-    - name: install greenlet and gevent
-      shell: |
-        easy_install greenlet
-        easy_install gevent
-
     - name: Install virtual environment
       shell: |
-        cd ..
-        sudo -H pip3 install virtualenv
+        pip3 install virtualenv
         virtualenv -p python3 venv
 
     - name: Git clone repo
@@ -108,12 +69,12 @@
         pwd
         . /home/ubuntu/venv/bin/activate
         cd /home/ubuntu/yummy_api
-        pip3 install -r requirements.txt
+        pip install -r requirements.txt
 
     - name: Nginx setup
       shell: |
         sudo systemctl start nginx
-        sudo bash -c 'cat > /etc/nginx/sites-available/yummy <<EOF
+        sudo bash -c 'cat <<EOF> /etc/nginx/sites-available/yummy
         server {
             listen 80;
             server_name api2.philophilo.xyz;
@@ -125,7 +86,7 @@
                 proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
             }
         }
-        '
+        EOF'
         sudo rm -rf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default 
         sudo ln -s /etc/nginx/sites-available/yummy /etc/nginx/sites-enabled/
 
@@ -137,6 +98,7 @@
         python manage.py db init
         python manage.py db migrate
         python manage.py db upgrade
+        deactivate
       ignore_errors: yes
 
     - name: setup ssh certbot
@@ -145,27 +107,18 @@
         sudo apt-get update
         sudo pip3 install cffi
         sudo apt-get install -y python-certbot-nginx
-        #        sudo certbot --nginx -d api3.p#hilophilo.xyz --agree-tos -m namename.gmail.com --redirect
-  #      expect:
-  #        responses:
-  #          Enter email address \(used for urgent renewal and security notices\) \(Enter 'c' to cancel\):: namaname@gmail.com
-  #          (A)gree/(C)ancel:: A
-  #          (Y)es/(N)o:: 1
-  #          Select the appropriate numbers separated by commas and/or spaces, or leave input
-  #        blank to select all options shown (Enter 'c' to cancel): 1
-  #          Select the appropriate number \[1-2\] then \[enter\] \(press 'c' to cancel\): 2
-
 
     - name: start Nginx
       shell: |
         sudo systemctl restart nginx # restart nginx
         sudo systemctl status nginx
 
-    - name: setup supervisor
+    - name: start the app
       shell: |
-        sudo bash -c 'cat > /etc/supervisor/conf.d/yummy.conf <<EOF
+        sudo apt-get install -y supervisor
+        sudo bash -c 'cat <<EOF> /etc/supervisor/conf.d/yummy.conf
         [program:yummy]
-        command=/home/ubuntu/venv/bin/gunicorn run:app --preload -p rocket.pid -b 0.0.0.0:8000 --access-logfile "-"
+        command=/home/ubuntu/venv/bin/gunicorn run:app
         environment=DATABASE_URL="postgresql://philophilo:12345678@databasepsql.c4ecouwmxh9c.us-east-2.rds.amazonaws.com:5432/yummy"
         directory=/home/ubuntu/yummy_api
         user=ubuntu
@@ -173,10 +126,7 @@
         autorestart=unexpected
         stdout_logfile=/home/ubuntu/gunicorn.log
         stderr_logfile=/home/ubuntu/gunicorn.err.log
-        '
-
-    - name: start the app
-      shell:
+        EOF'
         sudo supervisorctl reread
         sudo supervisorctl update
         sudo supervisorctl start yummy

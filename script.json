@@ -24,7 +24,7 @@
     }],
 
 	"provisioners":[{
-	    "type": "shell",
-	    "script": "provision.sh"
+	    "type": "ansible",
+	    "playbook_file": "playbook.yml"
 	}]
 }
