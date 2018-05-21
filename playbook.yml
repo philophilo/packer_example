@@ -2,136 +2,15 @@
   become: yes
   become_method: sudo
   remote_user: ubuntu
-  # gather_facts: False
 
   vars:
     dir: /home/ubuntu/
     app_dir: /home/ubuntu/yummy_api
     ansible_python_interpreter: "/usr/bin/python3"
 
-  tasks:
-#    - name: add python3.6 external source
-#      apt_repository:
-#        repo: ppa:deadsnakes/ppa
-#        state: present
-    
-#    - name: install python3.6
-#      apt:
-#        name: python3.6
-#        update_cache: yes
-
-    - name: install python essentials
-      apt: 
-        update_cache: yes
-        name: "{{ item }}"
-        state: present
-      with_items:
-        - build-essential
-        - python3-pip
-        - python3-dev
-        - nginx
-        - python3-gdbm
-        - autoconf
-        - libtool
-        - pkg-config
-        - python-opengl
-        - python-imaging
-        - python-pyrex
-        - python-pyside.qtopengl
-        - idle-python2.7
-        - qt4-dev-tools
-        - qt4-designer
-        - libqtgui4
-        - libqtcore4
-        - libqt4-xml
-        - libqt4-test
-        - libqt4-script
-        - libqt4-network
-        - libqt4-dbus
-        - python-qt4
-        - python-qt4-gl
-        - libgle3
-        - python-dev
-        - libssl-dev
-
-    - name: Install virtual environment
-      shell: |
-        pip3 install virtualenv
-        virtualenv -p python3 venv
-
-    - name: Git clone repo
-      git:
-        repo: https://github.com/philophilo/yummy_api.git
-        dest: "{{ app_dir }}"
-
-    - name: install pip requirements
-      shell: |
-        pwd
-        . /home/ubuntu/venv/bin/activate
-        cd /home/ubuntu/yummy_api
-        pip install -r requirements.txt
-
-    - name: Nginx setup
-      shell: |
-        sudo systemctl start nginx
-        sudo bash -c 'cat <<EOF> /etc/nginx/sites-available/yummy
-        server {
-            listen 80;
-            server_name api2.philophilo.xyz;
-            location / {
-                proxy_pass http://127.0.0.1:8000/;
-                proxy_set_header Host \$host;
-                proxy_set_header X-Forwarded-Proto \$scheme;
-                proxy_set_header X-Real-IP \$remote_addr;
-                proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            }
-        }
-        EOF'
-        sudo rm -rf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default 
-        sudo ln -s /etc/nginx/sites-available/yummy /etc/nginx/sites-enabled/
-
-    - name: Database setup
-      shell: |
-        export DATABASE_URL='postgresql://philophilo:12345678@databasepsql.c4ecouwmxh9c.us-east-2.rds.amazonaws.com:5432/yummy'
-        cd /home/ubuntu/yummy_api
-        . /home/ubuntu/venv/bin/activate
-        python manage.py db init
-        python manage.py db migrate
-        python manage.py db upgrade
-        deactivate
-      ignore_errors: yes
-
-    - name: setup ssh certbot
-      shell: |
-        sudo add-apt-repository -y ppa:certbot/certbot
-        sudo apt-get update
-        sudo pip3 install cffi
-        sudo apt-get install -y python-certbot-nginx
-
-    - name: start Nginx
-      shell: |
-        sudo systemctl restart nginx # restart nginx
-        sudo systemctl status nginx
-
-    - name: start the app
-      shell: |
-        sudo apt-get install -y supervisor
-        sudo bash -c 'cat <<EOF> /etc/supervisor/conf.d/yummy.conf
-        [program:yummy]
-        command=/home/ubuntu/venv/bin/gunicorn run:app
-        environment=DATABASE_URL="postgresql://philophilo:12345678@databasepsql.c4ecouwmxh9c.us-east-2.rds.amazonaws.com:5432/yummy"
-        directory=/home/ubuntu/yummy_api
-        user=ubuntu
-        autostart=true
-        autorestart=unexpected
-        stdout_logfile=/home/ubuntu/gunicorn.log
-        stderr_logfile=/home/ubuntu/gunicorn.err.log
-        EOF'
-        sudo supervisorctl reread
-        sudo supervisorctl update
-        sudo supervisorctl start yummy
-        sudo mkdir /etc/systemd/system/nginx.service.d
-        printf "[Service]\nExecStartPost=/bin/sleep 0.1\n" > override.conf
-        sudo mv override.conf /etc/systemd/system/nginx.service.d/override.conf
-        sudo systemctl daemon-reload
-        sudo systemctl restart nginx 
+  roles:
+    - essentials
+    - app
+    - nginx
+    - certbot
+    - supervisor

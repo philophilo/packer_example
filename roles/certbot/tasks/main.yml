@@ -1,0 +1,9 @@
+---
+################# certbot ########################
+
+- name: setup ssh certbot
+  shell: |
+    sudo add-apt-repository -y ppa:certbot/certbot
+    sudo apt-get update
+    sudo pip3 install cffi
+    sudo apt-get install -y python-certbot-nginx

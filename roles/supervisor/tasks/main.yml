@@ -1,0 +1,25 @@
+---
+################ supervisor ######################
+
+- name: start the app
+  shell: |
+    sudo apt-get install -y supervisor
+    sudo bash -c 'cat <<EOF> /etc/supervisor/conf.d/yummy.conf
+    [program:yummy]
+    command=/home/ubuntu/venv/bin/gunicorn run:app
+    environment=DATABASE_URL="postgresql://philophilo:12345678@databasepsql.c4ecouwmxh9c.us-east-2.rds.amazonaws.com:5432/yummy"
+    directory=/home/ubuntu/yummy_api
+    user=ubuntu
+    autostart=true
+    autorestart=unexpected
+    stdout_logfile=/home/ubuntu/gunicorn.log
+    stderr_logfile=/home/ubuntu/gunicorn.err.log
+    EOF'
+    sudo supervisorctl reread
+    sudo supervisorctl update
+    sudo supervisorctl start yummy
+    sudo mkdir /etc/systemd/system/nginx.service.d
+    printf "[Service]\nExecStartPost=/bin/sleep 0.1\n" > override.conf
+    sudo mv override.conf /etc/systemd/system/nginx.service.d/override.conf
+    sudo systemctl daemon-reload
+    sudo systemctl restart nginx 
