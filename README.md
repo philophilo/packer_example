@@ -1,14 +1,12 @@
 # Packer and Ansible
 
-#### Requirements
+### Requirements
 - Packer 
 - Ansible
 
-#### Installation
+### Installation
 
-##### installation
-
-Packer
+#### Packer
 
 On linux
 ```
@@ -20,9 +18,9 @@ On mac
 brew install packer
 ```
 
-Ansible
+#### Ansible
 
-(Create a virtual Environment)[https://gist.github.com/Geoyi/d9fab4f609e9f75941946be45000632b]
+[Create a virtual Environment](https://gist.github.com/Geoyi/d9fab4f609e9f75941946be45000632b)
 ```
 pip install ansible==2.5.2
 ```
